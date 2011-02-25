@@ -13,7 +13,8 @@ namespace AspComet.MessageHandlers
 
         public MessageHandlerResult HandleMessage(Message request)
         {
-            bool wasUnsubscribed = UnsubscribeClientAndPublishEvent(request.clientId, request.subscription);
+            string error;
+            bool wasUnsubscribed = UnsubscribeClientAndPublishEvent(request.clientId, request.subscription, out error);
 
             return new MessageHandlerResult
             {
@@ -23,18 +24,27 @@ namespace AspComet.MessageHandlers
                     channel = request.channel,
                     successful = wasUnsubscribed,
                     clientId = request.clientId,
-                    subscription = request.subscription
+                    subscription = request.subscription,
+                    error = error
                 },
                 CanTreatAsLongPoll = false
             };
         }
 
-        private bool UnsubscribeClientAndPublishEvent(string clientId, string subscription)
+        private bool UnsubscribeClientAndPublishEvent(string clientId, string subscription, out string error)
         {
+            error = null;
+
             IClient client = clientRepository.GetByID(clientId);
 
-            if (client == null || !client.IsSubscribedTo(subscription))
+            if (client == null)
+            {
+                error = ErrorMessages.ClientIDNotRecognized(clientId);
                 return false;
+            }
+
+            if (!client.IsSubscribedTo(subscription))
+                return false; // not sure if it is correct idea
 
             client.UnsubscribeFrom(subscription);
 

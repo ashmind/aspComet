@@ -15,6 +15,11 @@ namespace AspComet.MessageHandlers
         {
             IClient client = clientRepository.GetByID(request.clientId);
 
+            if (client == null)
+            {
+                return new MessageHandlerResult { Message = GetUnrecognisedClientResponse(request), CanTreatAsLongPoll = false };
+            }
+
             ICancellableEvent subscribingEvent = PublishSubscribingEvent(request, client);
 
             if (subscribingEvent.Cancel)
@@ -53,6 +58,22 @@ namespace AspComet.MessageHandlers
                 clientId = request.clientId,
                 subscription = request.subscription
             };
+        }
+
+        private static Message GetUnrecognisedClientResponse(Message request)
+        {
+            // The subscription failed response is documented at
+            // http://svn.cometd.org/trunk/bayeux/bayeux.html#toc_44
+
+            Message response = new Message {
+                id = request.id,
+                channel = request.channel,
+                successful = false,
+                clientId = request.clientId,
+                error = ErrorMessages.ClientIDNotRecognized(request.clientId)
+            };
+
+            return response;
         }
 
         private static Message GetSubscriptionFailedResponse(Message request, string cancellationReason)

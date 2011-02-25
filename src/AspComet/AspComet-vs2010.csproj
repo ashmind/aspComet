@@ -86,6 +86,7 @@
     <Compile Include="Eventing\IChannelEvent.cs" />
     <Compile Include="IClientWorkflowManager.cs" />
     <Compile Include="ISerializer.cs" />
+    <Compile Include="MessageHandlers\ErrorMessages.cs" />
     <Compile Include="ServiceMetadata.cs" />
     <Compile Include="Setup.cs" />
     <Compile Include="Eventing\CancellableEvent.cs" />
